@@ -1,0 +1,79 @@
+# Comelit Doorbell - Telegram Notification with Snapshot
+#
+# HOW TO USE:
+#   1. Find the correct entity_id for the doorbell sensor:
+#      HA -> Developer Tools -> States -> search "comelit"
+#      It is usually named binary_sensor.comelit_*_call or similar.
+#      Update the trigger entity_id below.
+#
+#   2. Add to your configuration.yaml (then restart HA):
+#
+#        shell_command:
+#          comelit_snapshot: >
+#            python3 /root/homeassistant/scripts/snapshot.py
+#            --output /tmp/doorbell.jpg
+#            --timeout 10
+#
+#   3. Set up a Telegram bot via @BotFather and add to secrets.yaml:
+#        telegram_bot_token: "123456:ABCDEF..."
+#        telegram_chat_id: 123456789
+#
+#   4. Add to configuration.yaml if Telegram not yet configured:
+#
+#        telegram_bot:
+#          - platform: polling
+#            api_key: !secret telegram_bot_token
+#            allowed_chat_ids:
+#              - !secret telegram_chat_id
+#
+#        notify:
+#          - platform: telegram
+#            name: telegram
+#            chat_id: !secret telegram_chat_id
+#
+#   5. Install ffmpeg on the HA server: apt install ffmpeg
+#
+#   6. Copy snapshot.py to the HA server:
+#        scp scripts/snapshot.py root@10.168.168.44:/root/homeassistant/scripts/snapshot.py
+
+alias: "Doorbell - Telegram notification with snapshot"
+description: >
+  When someone rings the Comelit doorbell, runs a snapshot script
+  and sends a Telegram message + photo.
+
+trigger:
+  # Primary trigger: doorbell call sensor from comelit_intercom integration.
+  # VERIFY the entity_id in HA -> Developer Tools -> States.
+  - platform: state
+    entity_id: binary_sensor.comelit_intercom_call
+    to: "on"
+
+condition: []
+
+action:
+  # Step 1: Run the snapshot script (non-blocking via shell_command).
+  # snapshot.py connects to the device and saves /tmp/doorbell.jpg.
+  # If no call is active, the script exits with code 1 (automation continues).
+  - service: shell_command.comelit_snapshot
+    data: {}
+
+  # Step 2: Wait a few seconds for ffmpeg to finish writing the JPEG.
+  - delay: "00:00:03"
+
+  # Step 3: Send Telegram text message.
+  - service: telegram_bot.send_message
+    data:
+      target: !secret telegram_chat_id
+      message: "\U0001f6aa Alguien en la puerta!"
+
+  # Step 4: Send snapshot photo (if snapshot.py succeeded and file exists).
+  # If /tmp/doorbell.jpg does not exist, this step will log a warning but
+  # the automation will not fail.
+  - service: telegram_bot.send_photo
+    data:
+      target: !secret telegram_chat_id
+      file: /tmp/doorbell.jpg
+      caption: "Entrada - {{ now().strftime('%H:%M:%S') }}"
+
+mode: single
+max_exceeded: silent

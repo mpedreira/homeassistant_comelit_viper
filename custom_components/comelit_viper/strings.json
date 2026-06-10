@@ -1,0 +1,30 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Comelit VIPER",
+        "description": "Configure your Comelit video intercom.\n\nYou need the **user token** from the device. You can obtain it by capturing traffic between the Comelit app and the intercom. See the [guide](https://github.com/madchicken/comelit-client/wiki/Get-your-user-token-for-ICONA-communication).",
+        "data": {
+          "host": "Host (IP address)",
+          "port": "Port",
+          "token": "User Token"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect to the device. Check the IP address and that the device is reachable.",
+      "invalid_auth": "Authentication failed. Check the user token.",
+      "unknown": "Unexpected error. Check the logs."
+    },
+    "abort": {
+      "already_configured": "Device is already configured."
+    }
+  },
+  "entity": {
+    "button": {
+      "open_door": {
+        "name": "Open Door"
+      }
+    }
+  }
+}
