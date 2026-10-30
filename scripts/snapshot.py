@@ -52,7 +52,7 @@ log = logging.getLogger("comelit_snapshot")
 # ---- device defaults (edit to match your setup) --------------------------
 DEFAULT_HOST  = "10.168.168.44"
 DEFAULT_PORT  = 64100
-DEFAULT_TOKEN = "3f81d40514486669fb62a43455676261"
+DEFAULT_TOKEN = ""  # pass your token with --token
 DEFAULT_OUT   = "/tmp/doorbell.jpg"
 VIP_APT  = "00000003"
 VIP_SUB  = 5
